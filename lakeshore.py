@@ -3,19 +3,19 @@ import numpy as np
 import json
 import time, os
 
-frequencies = np.array([9.8, 13.7, 16.2])
-units = ['Kelvin', 'Ohms', 'linear data', 'minimum data', 'maximum data']
-mode = ['Voltage', 'Current']
-voltages = np.array([2e-6, 6.32e-6, 20e-6, 63.2e-6, 200e-6, 632e-6, 
-                     2e-3,6.32e-3,20e-3, 63.2e-3, 200e-3, 632e-3])
-currents = np.array([1e-12, 3.16e-12, 10e-12, 31.6e-12, 100e-12, 316e-12, 
-                     1e-9, 3.16e-9, 10e-9, 31.6e-9, 100e-9, 316e-9, 
-                     1e-6, 3.16e-6, 10e-6, 31.6e-6, 100e-6, 316e-6,
-                     1e-3, 3.16e-3, 10e-3, 31.6e-3])
-resistances = np.array([2.00e-3, 6.32e-3, 20e-3, 63.2e-3, 200e-3, 632e-3, 
-                        2.00, 6.32, 20, 63.2, 200, 632, 
-                        2.00e3, 6.32e3, 20e3, 63.2e3, 200e3, 632e3,
-                        2.00e6, 6.32e6, 20e6, 63.2e6])
+__FREQUENCIES__ = np.array([9.8, 13.7, 16.2])
+__UNITS__ = ['Kelvin', 'Ohms', 'linear data', 'minimum data', 'maximum data']
+__MODES__ = ['Voltage', 'Current']
+__VOLTAGES__ = np.array([2e-6, 6.32e-6, 20e-6, 63.2e-6, 200e-6, 632e-6, 
+                        2e-3,6.32e-3,20e-3, 63.2e-3, 200e-3, 632e-3])
+__CURRENTS__ = np.array([1e-12, 3.16e-12, 10e-12, 31.6e-12, 100e-12, 316e-12, 
+                        1e-9, 3.16e-9, 10e-9, 31.6e-9, 100e-9, 316e-9, 
+                        1e-6, 3.16e-6, 10e-6, 31.6e-6, 100e-6, 316e-6,
+                        1e-3, 3.16e-3, 10e-3, 31.6e-3])
+__RESISTANCES__ = np.array([2.00e-3, 6.32e-3, 20e-3, 63.2e-3, 200e-3, 632e-3, 
+                            2.00, 6.32, 20, 63.2, 200, 632, 
+                            2.00e3, 6.32e3, 20e3, 63.2e3, 200e3, 632e3,
+                            2.00e6, 6.32e6, 20e6, 63.2e6])
 
                         
 
@@ -107,20 +107,20 @@ class LS370():
         
         self.ctrl.write('DISPLOC {0:d}, {1:d}, {2:d}, {3:d}'.format(
                         config['display location'], config['channel number'], 
-                        units.index(config['units'])+1, config['resolution']))
+                        __UNITS__.index(config['units'])+1, config['resolution']))
         time.sleep(0.1)
         
         if config['excitation mode']=='Voltage':
-            excite = np.abs(voltages - config['excitation']).argmin()+1
+            excite = np.abs(__VOLTAGES__ - config['excitation']).argmin()+1
         elif config['excitation mode'] == 'Current':
-            excite = np.abs(currents - config['excitation']).argmin()+1
+            excite = np.abs(__CURRENTS__ - config['excitation']).argmin()+1
         else:
-            excite = np.abs(voltages - config['excitation']).argmin()+1
-        rrange = ((resistances - config['range']) > 0).argmax()+1
+            excite = np.abs(__VOLTAGES__ - config['excitation']).argmin()+1
+        rrange = ((__RESISTANCES__ - config['range']) > 0).argmax()+1
         
         
         self.ctrl.write('RDGRNG {0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:d}'.format(
-                        config['channel number'], mode.index(config['excitation mode']), 
+                        config['channel number'], __MODES__.index(config['excitation mode']), 
                         excite, rrange, config['autorange'], config['cs off']))
         time.sleep(0.1)
         
@@ -149,7 +149,7 @@ class LS370():
         with open(global_config, 'r') as f:
             config = json.load(f)
             
-        freq = np.abs(frequencies - config['frequency']).argmin()+1
+        freq = np.abs(__FREQUENCIES__ - config['frequency']).argmin()+1
         self.ctrl.write('DISPLAY {0:d}'.format(len(config['connected channels'])))
         time.sleep(0.1)
         self.ctrl.write('FREQ {0:d}'.format(freq))
