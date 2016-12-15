@@ -103,7 +103,7 @@ def update_scanner_cycle(cmd):
     new_sequence = [float(t) for t in cmd[7:].strip().split(',')]
     
     # load existing config and rewrite scanner sequence
-    global_config = r'C:\Users\LabUser\Documents\python_scripts\lakeshore_config\global.config'
+    global_config = r'C:\Users\LabUser\Documents\GitHub\ControlLoops\ls_config_bfs\global.config'
     with open(global_config, 'r') as f:
             config = json.load(f)
     config['scanner sequence'] = new_sequence
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     sensors = sorted(sensors, key=lambda x: (x[2], x[-1])) # use this to find index
     sensor_data = [[datetime.now(), s, 0.0] for s in sensors] # use this to store data
     
-    config_file = r'C:\Users\LabUser\Documents\python_scripts\lakeshore_config\global.config'
+    config_file = r'C:\Users\LabUser\Documents\GitHub\ControlLoops\ls_config_bfs\global.config'
     config_time = os.path.getmtime(config_file)
     with open(config_file, 'r') as f: # fix config file paths
                 config = json.load(f)
