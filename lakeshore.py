@@ -93,18 +93,20 @@ class LS370():
                 autorange = On (1) or Off (0)
                 cs off = excitation on (0) or off (1) 
                 
-                filter = use filtering on(1) or off(1)
+                filter = use filtering on(1) or off(0)
                 settle time = settling time for the filter, 1 to 200 s
                 window = filter window, 1-80% """
                 
         with open(filename, 'r') as f:
             config = json.load(f)
 
+        # setup channel
         self.ctrl.write('INSET {0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:d}'.format(
                         config['channel number'], 1, config['dwell'], config['pause'],
                         config['curve'], config['tempco']))
         time.sleep(0.1)
-        
+
+        # setup display        
         self.ctrl.write('DISPLOC {0:d}, {1:d}, {2:d}, {3:d}'.format(
                         config['display location'], config['channel number'], 
                         units.index(config['units'])+1, config['resolution']))
@@ -118,15 +120,17 @@ class LS370():
             excite = np.abs(voltages - config['excitation']).argmin()+1
         rrange = ((resistances - config['range']) > 0).argmax()+1
         
-        
+        # setup excitation and reading ranges
         self.ctrl.write('RDGRNG {0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:d}'.format(
                         config['channel number'], mode.index(config['excitation mode']), 
                         excite, rrange, config['autorange'], config['cs off']))
         time.sleep(0.1)
         
+        # setup filter
         self.ctrl.write('FILTER {0:d}, {1:d}, {2:d}, {3:d}'.format(
                         config['channel number'], config['filter'], 
-                        config['settle time'], config['window']))
+                        config['settle time'], config['window']))            
+        time.sleep(0.1)
         
         settling_time = 3.2 # manual says 3.0, timing it says i'm missing 0.2s
         if config['filter']==1:
@@ -136,26 +140,23 @@ class LS370():
         
         return settling_time # return the settling time for this channel
                 
-    def configure_global(self, global_config, start_ch=6):
-        """ configure all parameters/channels using global configuration file.
-            
-            parameters -- 
-            
-                connected channels = list of which channels are connected 
-                config files = configuration files for those channels, all paths are 
-                               relative to global config file path
-                frquency = what frequency to run the lock in, chooses closest setpoint """
+    def configure_global(self, global_config, start_ch=1):
+        """ configure all parameters/channels using global configuration file. """
         
         with open(global_config, 'r') as f:
             config = json.load(f)
             
         freq = np.abs(frequencies - config['frequency']).argmin()+1
+        
+        # display
         self.ctrl.write('DISPLAY {0:d}'.format(len(config['connected channels'])))
         time.sleep(0.1)
+        
+        # frequency
         self.ctrl.write('FREQ {0:d}'.format(freq))
         time.sleep(0.1)
-        settling_times = [0 for i in range(len(config['connected channels']))]
         
+        settling_times = [0 for i in range(len(config['connected channels']))]
         for i in range(1,17):
             if i in config['connected channels']:
                 idx = config['connected channels'].index(i)
