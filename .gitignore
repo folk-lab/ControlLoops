@@ -1,0 +1,13 @@
+# mac junk
+
+.DS_Store
+
+# python junk
+
+*.pyc
+*.egg-info
+__pycache__/
+
+# other
+
+._*.config
