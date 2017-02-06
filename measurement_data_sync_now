@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# some stuff
+# run this thing to sync your measurement data right now
+# intended to be tied to some button on the measurements website
+
+retry = "0"
+
+while [ $retry -tl 20 ]; do
+	response = "$(/srv/machines/measurement_data_sync)"
+	if [ "$response" == "PASS" ]
+		echo "PASS"
+		exit 0
+	retry=$[$retry+1]
+	sleep 5;
+done
+
+echo "FAIL"
+exit 0

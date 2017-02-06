@@ -1,0 +1,51 @@
+#!/bin/sh
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+### this thing should be run in sudo crontab -e ###
+
+## to add a computer...
+## make sure it has a data folder shared as //<machine>.phas.ubc.ca/Local_Measurement_Data
+## create a mount point on the server at /mnt/<machine>
+## create a new mount command, rsync command, and unmount command for <machine> 
+
+## if you want to add a new type of data file start by adding --include='*.???'
+## to the rsync commands
+
+# locking strategy stolen from here: http://unix.stackexchange.com/questions/22044/correct-locking-in-shell-scripts
+# using these to create a lock for this process 
+lockdir=/var/tmp/datasync
+pidfile=/var/tmp/datasync/pid
+
+if ( mkdir ${lockdir} ) 2> /dev/null; then
+        # got lock on directory, create PID entry in file
+	echo $$ > $pidfile
+        trap 'rm -rf "$lockdir"; exit $?' INT TERM EXIT # use trap to ensure this always gets removed
+
+	# mount volume
+	mount -t cifs //qdot20.phas.ubc.ca/Local_Measurement_Data /mnt/qdot20 -o ro,credentials=/srv/machines/qdot20_credentials
+	mount -t cifs //qdot25.phas.ubc.ca/Local_Measurement_Data /mnt/qdot25 -o ro,credentials=/srv/machines/qdot25_credentials
+	mount -t cifs //qdot26.phas.ubc.ca/Local_Measurement_Data /mnt/qdot26 -o ro,credentials=/srv/machines/qdot26_credentials
+
+	# rsync 
+	rsync -avzp --include='*/' --include-from='/srv/machines/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot20/ /srv/measurement-data/qdot20/
+	rsync -avzp --include='*/' --include-from='/srv/machines/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot25/ /srv/measurement-data/qdot25/
+	rsync -avzp --include='*/' --include-from='/srv/machines/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot26/ /srv/measurement-data/qdot26/
+
+	# unmount volume
+	umount /mnt/qdot20
+	umount /mnt/qdot25
+	umount /mnt/qdot26
+
+	# set permissions correctly
+	sudo chown -R www-data:www-data /srv/measurement-data/
+
+	# release locks
+        rm -rf "$lockdir"
+        trap - INT TERM EXIT
+	echo "PASS"
+
+else
+        echo "LOCKED BY: $(cat $pidfile)"
+fi

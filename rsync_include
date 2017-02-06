@@ -1,0 +1,4 @@
+# file types to include in measurement-data sync
+*.ibw
+*.pxp
+*.winf
