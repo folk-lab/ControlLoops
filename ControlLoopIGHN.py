@@ -3,10 +3,10 @@ import io
 import time
 import datetime
 import sys
-import IGH as g
+import igh
 import qweb
 
-# Define some functions first
+#### Read/Write/Log Functions ####
 
 def ReadEverything(igh):
 	state = ''
@@ -108,42 +108,45 @@ def ExecuteCommands():
 			except:
 				qweb.setCommandStatus(command_id, 'F')
 
-# The beginning of the script
-port_id=2
-
-period_all = 0.500 #seconds
-period_log = 15
-period_readConfig = 10
-period_command = 5
-
-AllowReadAll = True
 
 
-igh = g.IGH(port_id, '/dev/ttyS6', 9600, 5, 'ighcontroller')
-ilm = g.IGH(port_id, '/dev/ttyS6', 9600, 6, 'ighcontroller')
-# ilmTemp = g.IGH(port_id, '/dev/ttyS6', 9600, 7, 'ighcontroller')
+#### Main Control Loop ####
 
-t_all = 0
-t_log = 0
-t_readConfig = 0
-t_adjNV = 0
-t_command = 0
+if __name__ == "__main__":
 
-while True:
-	try:
-		if time.time() - t_all >=period_all and AllowReadAll:
-			state = ReadEverything(igh)
-			ReadILM(ilm)
-			t_all = time.time()
-			qweb.setCurrentState(2, state)
-						
-		if time.time() - t_log >=period_log and AllowReadAll:
-			Log(igh, ilm)
-			t_log = time.time()
-			
-		if time.time() - t_command >= period_command and period_command > 0:
-			ExecuteCommands()			
-			t_command = time.time()
-						
-	except Exception as e:
-		print(datetime.datetime.now(), ': ',e)
+    port_id=2
+
+    period_all = 0.500 #seconds
+    period_log = 15
+    period_readConfig = 10
+    period_command = 5
+
+    AllowReadAll = True
+
+    igh_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 5, 'ighcontroller') 
+    ilm_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 6, 'ighcontroller')
+
+    t_all = 0
+    t_log = 0
+    t_readConfig = 0
+    t_adjNV = 0
+    t_command = 0
+
+    while True:
+        try:
+            if time.time() - t_all >=period_all and AllowReadAll:
+                state = ReadEverything(igh)
+                ReadILM(ilm_ctrl)
+                t_all = time.time()
+                qweb.setCurrentState(2, state)
+                        
+            if time.time() - t_log >=period_log and AllowReadAll:
+                Log(igh_ctrl, ilm_ctrl)
+                t_log = time.time()
+            
+            if time.time() - t_command >= period_command and period_command > 0:
+                ExecuteCommands()			
+                t_command = time.time()
+                        
+        except Exception as e:
+            print(datetime.datetime.now(), ': ',e)

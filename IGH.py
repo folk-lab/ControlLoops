@@ -35,7 +35,7 @@ valve_map = {
 class IGH:
 	# Constructor. This is called when an object of type IGH is created.
 	# Example obj = IGH('/dev/ttyS1', 9600, 5)
-	# This example will create an instance of the IGH class called obj which can be used to talk to the north IGh (isobus#5)
+	# This example will create an instance of the IGH class called obj which can be used to talk to IGNHN (isobus#5)
 	# Owner is the process that made the object. It should be a name unique to a process that is used to lock the serial port.
 	def __init__(self, port_id, port_name, baudrate, machine_id, owner):
 		self.serial_port = serial.Serial(port_name, baudrate=baudrate, timeout=1, stopbits=2)
