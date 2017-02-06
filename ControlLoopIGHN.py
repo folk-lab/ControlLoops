@@ -8,28 +8,28 @@ import qweb
 
 #### Read/Write/Log Functions ####
 
-def ReadEverything(igh):
+def readEverything(igh):
 	state = ''
-	state += 'ighn_temp_1k=' + str(igh.GetOneKPotTemp())
-	state += ';ighn_temp_sorb=' + str(igh.GetSorbTemp())
-	state += ';ighn_temp_mix=' + str(igh.GetMixChTemp())
-	state += ';ighn_power_mix=' + str(igh.GetMixChPower())
-	state += ';ighn_power_still=' + str(igh.GetStillPower())
-	state += ';ighn_power_sorb=' + str(igh.GetSorbPower())
-	state += ';ighn_pres_g1=' + str(igh.GetG1())
-	state += ';ighn_pres_g2=' + str(igh.GetG2())
-	state += ';ighn_pres_g3=' + str(igh.GetG3())
-	state += ';ighn_pres_p1=' + str(igh.GetP1())
-	state += ';ighn_pres_p2=' + str(igh.GetP2())
-	state += ';ighn_nv=' + str(igh.GetNV())
-	state += ';ighn_v6=' + str(igh.GetV6())
-	state += ';ighn_v12a=' + str(igh.GetV12A())	
-	state += ';ighn_valves=' + str(igh.GetStatus())
+	state += 'ighn_temp_1k=' + str(igh.getOneKPotTemp())
+	state += ';ighn_temp_sorb=' + str(igh.getSorbTemp())
+	state += ';ighn_temp_mix=' + str(igh.getMixChTemp())
+	state += ';ighn_power_mix=' + str(igh.getMixChPower())
+	state += ';ighn_power_still=' + str(igh.getStillPower())
+	state += ';ighn_power_sorb=' + str(igh.getSorbPower())
+	state += ';ighn_pres_g1=' + str(igh.getG1())
+	state += ';ighn_pres_g2=' + str(igh.getG2())
+	state += ';ighn_pres_g3=' + str(igh.getG3())
+	state += ';ighn_pres_p1=' + str(igh.getP1())
+	state += ';ighn_pres_p2=' + str(igh.getP2())
+	state += ';ighn_nv=' + str(igh.getNV())
+	state += ';ighn_v6=' + str(igh.getV6())
+	state += ';ighn_v12a=' + str(igh.getV12A())	
+	state += ';ighn_valves=' + str(igh.getStatus())
 	state += ';ighn_power_mix_range=' + str(igh.MixPowerRange)
-	igh.GetMixChResistance()
+	igh.getMixChResistance()
 	return state
 
-def Log(igh, ilm):
+def log(igh, ilm):
 	response = qweb.getLoggableInfoForNow('igh')
 	sensors = str.split(response, '\n')
 	for sensor in sensors:
@@ -42,7 +42,7 @@ def Log(igh, ilm):
 				if keyvals[0]=='loggable_name':
 					loggable_name = keyvals[1]
 			
-			# IGH North and South
+			# IGH North
 			if loggable_name == 'ighn_temp_sorb':
 				val = igh.SorbTemp
 			elif loggable_name == 'ighn_temp_1k':
@@ -69,6 +69,7 @@ def Log(igh, ilm):
 				val = igh.NV
 			elif loggable_name == 'ighn_res_mix':
 				val = igh.MixChResistance
+				
 			#ILM
 			elif loggable_name == 'bluedewar_he_level':
 				val = ilm.HeliumLevel
@@ -81,12 +82,12 @@ def Log(igh, ilm):
 				qweb.makeLogEntry(loggable_name, val)
 
 
-def ReadILM(ilm):
-	ilm.GetHeliumLevel()
-	ilm.GetNitrogenLevel()
+def readILM(ilm):
+	ilm.getHeliumLevel()
+	ilm.getNitrogenLevel()
 
 
-def ExecuteCommands():
+def executeCommands():
 	response = qweb.getCommands(port_id, 'C')
 	cmdrows = str.split(response, '\n')
 	for cmdrow in cmdrows:
@@ -101,7 +102,7 @@ def ExecuteCommands():
 
 			print(datetime.datetime.now(), ' COMMAND :: ', cmdrow)
 			try:
-				response = igh.RunCommand(cmd)
+				response = igh.runCommand(cmd)
 				print(datetime.datetime.now(), ' RESPONSE :: ', response)
 				qweb.setCommandStatus(command_id, 'P')
 				qweb.setCommandResponse(command_id, response)
@@ -114,38 +115,36 @@ def ExecuteCommands():
 
 if __name__ == "__main__":
 
-    port_id=2
+    port_id=2 # port_id for the qdot-server database (IGHN = 2)
 
+    #setup period for logging/executing IGH commands
     period_all = 0.500 #seconds
     period_log = 15
     period_readConfig = 10
     period_command = 5
-
-    AllowReadAll = True
+    
+    t_all = 0
+    t_log = 0
+    t_readConfig = 0
+    t_command = 0
 
     igh_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 5, 'ighcontroller') 
     ilm_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 6, 'ighcontroller')
 
-    t_all = 0
-    t_log = 0
-    t_readConfig = 0
-    t_adjNV = 0
-    t_command = 0
-
     while True:
         try:
-            if time.time() - t_all >=period_all and AllowReadAll:
-                state = ReadEverything(igh)
-                ReadILM(ilm_ctrl)
+            if time.time() - t_all >=period_all:
+                state = readEverything(igh)
+                readILM(ilm_ctrl)
                 t_all = time.time()
                 qweb.setCurrentState(2, state)
                         
-            if time.time() - t_log >=period_log and AllowReadAll:
-                Log(igh_ctrl, ilm_ctrl)
+            if time.time() - t_log >=period_log:
+                log(igh_ctrl, ilm_ctrl)
                 t_log = time.time()
             
             if time.time() - t_command >= period_command and period_command > 0:
-                ExecuteCommands()			
+                executeCommands()			
                 t_command = time.time()
                         
         except Exception as e:

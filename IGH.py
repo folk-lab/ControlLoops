@@ -2,7 +2,6 @@ import serial
 import io
 import time
 import struct
-import qweb
 from decimal import Decimal
 import binascii
 
@@ -37,11 +36,9 @@ class IGH:
 	# Example obj = IGH('/dev/ttyS1', 9600, 5)
 	# This example will create an instance of the IGH class called obj which can be used to talk to IGNHN (isobus#5)
 	# Owner is the process that made the object. It should be a name unique to a process that is used to lock the serial port.
-	def __init__(self, port_id, port_name, baudrate, machine_id, owner):
+	def __init__(self, port_name, baudrate, machine_id):
 		self.serial_port = serial.Serial(port_name, baudrate=baudrate, timeout=1, stopbits=2)
-		self.machine_id = machine_id
-		self.port_id = port_id
-		self.owner = owner
+		self.machine_id = machine_id # this is the ISOBUS address
 	
 	def __del__(self):
 		self.serial_port.close()
@@ -50,8 +47,6 @@ class IGH:
 	# ALSO: 		Don't forget to save the changes into the permanent memory after running this function
 	def setIsobusAddress(self, address):
 		response = ''
-		#if qweb.lock(self.port_id, self.owner) == '100':
-		#try:
 		to_write = 'U1!{:d}{}'.format(address, EOL)
 		wrote = self.serial_port.write(to_write.encode('latin1'))
 		ch = ''
