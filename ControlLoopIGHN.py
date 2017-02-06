@@ -8,28 +8,28 @@ import qweb
 
 #### Read/Write/Log Functions ####
 
-def readEverything(igh):
+def readEverything(ctrl):
 	state = ''
-	state += 'ighn_temp_1k=' + str(igh.getOneKPotTemp())
-	state += ';ighn_temp_sorb=' + str(igh.getSorbTemp())
-	state += ';ighn_temp_mix=' + str(igh.getMixChTemp())
-	state += ';ighn_power_mix=' + str(igh.getMixChPower())
-	state += ';ighn_power_still=' + str(igh.getStillPower())
-	state += ';ighn_power_sorb=' + str(igh.getSorbPower())
-	state += ';ighn_pres_g1=' + str(igh.getG1())
-	state += ';ighn_pres_g2=' + str(igh.getG2())
-	state += ';ighn_pres_g3=' + str(igh.getG3())
-	state += ';ighn_pres_p1=' + str(igh.getP1())
-	state += ';ighn_pres_p2=' + str(igh.getP2())
-	state += ';ighn_nv=' + str(igh.getNV())
-	state += ';ighn_v6=' + str(igh.getV6())
-	state += ';ighn_v12a=' + str(igh.getV12A())	
-	state += ';ighn_valves=' + str(igh.getStatus())
-	state += ';ighn_power_mix_range=' + str(igh.MixPowerRange)
-	igh.getMixChResistance()
+	state += 'ighn_temp_1k=' + str(ctrl.getOneKPotTemp())
+	state += ';ighn_temp_sorb=' + str(ctrl.getSorbTemp())
+	state += ';ighn_temp_mix=' + str(ctrl.getMixChTemp())
+	state += ';ighn_power_mix=' + str(ctrl.getMixChPower())
+	state += ';ighn_power_still=' + str(ctrl.getStillPower())
+	state += ';ighn_power_sorb=' + str(ctrl.getSorbPower())
+	state += ';ighn_pres_g1=' + str(ctrl.getG1())
+	state += ';ighn_pres_g2=' + str(ctrl.getG2())
+	state += ';ighn_pres_g3=' + str(ctrl.getG3())
+	state += ';ighn_pres_p1=' + str(ctrl.getP1())
+	state += ';ighn_pres_p2=' + str(ctrl.getP2())
+	state += ';ighn_nv=' + str(ctrl.getNV())
+	state += ';ighn_v6=' + str(ctrl.getV6())
+	state += ';ighn_v12a=' + str(ctrl.getV12A())	
+	state += ';ighn_valves=' + str(ctrl.getStatus())
+	state += ';ighn_power_mix_range=' + str(ctrl.MixPowerRange)
+	ctrl.getMixChResistance() # not logging this?
 	return state
 
-def log(igh, ilm):
+def log(igh_ctrl, ilm_ctrl):
 	response = qweb.getLoggableInfoForNow('igh')
 	sensors = str.split(response, '\n')
 	for sensor in sensors:
@@ -44,37 +44,37 @@ def log(igh, ilm):
 			
 			# IGH North
 			if loggable_name == 'ighn_temp_sorb':
-				val = igh.SorbTemp
+				val = igh_ctrl.SorbTemp
 			elif loggable_name == 'ighn_temp_1k':
-				val = igh.OneKPotTemp
+				val = igh_ctrl.OneKPotTemp
 			elif loggable_name == 'ighn_temp_mix':
-				val = igh.MixChTemp
+				val = igh_ctrl.MixChTemp
 			elif loggable_name == 'ighn_power_mix':
-				val = igh.MixChPower
+				val = igh_ctrl.MixChPower
 			elif loggable_name == 'ighn_power_still':
-				val = igh.StillPower
+				val = igh_ctrl.StillPower
 			elif loggable_name == 'ighn_power_sorb':
-				val = igh.SorbPower
+				val = igh_ctrl.SorbPower
 			elif loggable_name == 'ighn_pres_g1':
-				val = igh.G1
+				val = igh_ctrl.G1
 			elif loggable_name == 'ighn_pres_g2':
-				val = igh.G2
+				val = igh_ctrl.G2
 			elif loggable_name == 'ighn_pres_g3':
-				val = igh.G3
+				val = igh_ctrl.G3
 			elif loggable_name == 'ighn_pres_p1':
-				val = igh.P1
+				val = igh_ctrl.P1
 			elif loggable_name == 'ighn_pres_p2':
-				val = igh.P2
+				val = igh_ctrl.P2
 			elif loggable_name == 'ighn_nv':
-				val = igh.NV
+				val = igh_ctrl.NV
 			elif loggable_name == 'ighn_res_mix':
-				val = igh.MixChResistance
+				val = igh_ctrl.MixChResistance
 				
 			#ILM
 			elif loggable_name == 'bluedewar_he_level':
-				val = ilm.HeliumLevel
+				val = ilm_ctrl.HeliumLevel
 			elif loggable_name == 'bluedewar_ni_level':
-				val = ilm.NitrogenLevel
+				val = ilm_ctrl.NitrogenLevel
 			else:
 				found = False
 				
@@ -82,12 +82,12 @@ def log(igh, ilm):
 				qweb.makeLogEntry(loggable_name, val)
 
 
-def readILM(ilm):
-	ilm.getHeliumLevel()
-	ilm.getNitrogenLevel()
+def readILM(ctrl):
+	ctrl.getHeliumLevel()
+	ctrl.getNitrogenLevel()
 
 
-def executeCommands():
+def executeCommands(ctrl):
 	response = qweb.getCommands(port_id, 'C')
 	cmdrows = str.split(response, '\n')
 	for cmdrow in cmdrows:
@@ -102,7 +102,7 @@ def executeCommands():
 
 			print(datetime.datetime.now(), ' COMMAND :: ', cmdrow)
 			try:
-				response = igh.runCommand(cmd)
+				response = ctrl.runCommand(cmd)
 				print(datetime.datetime.now(), ' RESPONSE :: ', response)
 				qweb.setCommandStatus(command_id, 'P')
 				qweb.setCommandResponse(command_id, response)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 t_log = time.time()
             
             if time.time() - t_command >= period_command and period_command > 0:
-                executeCommands()			
+                executeCommands(igh_ctrl)			
                 t_command = time.time()
                         
         except Exception as e:
