@@ -1,9 +1,8 @@
 import serial
-import io
 import time
 import datetime
-import sys
 import igh
+import ilm
 import qweb
 
 #### Read/Write/Log Functions ####
@@ -129,7 +128,7 @@ if __name__ == "__main__":
     t_command = 0
 
     igh_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 5, 'ighcontroller') 
-    ilm_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 6, 'ighcontroller')
+    ilm_ctrl = ilm.ILM(port_id, '/dev/ttyS6', 9600, 6, 'ighcontroller')
 
     while True:
         try:

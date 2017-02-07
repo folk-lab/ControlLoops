@@ -1,9 +1,5 @@
 import serial
-import io
 import time
-import struct
-from decimal import Decimal
-import binascii
 
 EOL = '\r'	# End of line character for the IGH
 valve_map = {
@@ -45,28 +41,28 @@ class IGH:
 	
 	# ATTENTION:	Don't use this when several ISOBUS devices are connected and powered on
 	# ALSO: 		Don't forget to save the changes into the permanent memory after running this function
-	def setIsobusAddress(self, address):
-		response = ''
-		to_write = 'U1!{:d}{}'.format(address, EOL)
-		wrote = self.serial_port.write(to_write.encode('latin1'))
-		ch = ''
-		t = time.time()			# Don't try to read forever, if there's nothing
-		while ch != EOL and time.time() - t < 1:
-			ch = self.serial_port.read().decode('utf-8')
-			response += ch
-		self.serial_port.flush()
-
-		to_write = 'U0{}'.format(EOL)
-		wrote = self.serial_port.write(to_write.encode('latin1'))
-		ch = ''
-		t = time.time()			# Don't try to read forever, if there's nothing
-		while ch != EOL and time.time() - t < 1:
-			ch = self.serial_port.read().decode('utf-8')
-			response += ch
-		self.serial_port.flush()		
-		
-		self.machine_id = address
-		return response
+# 	def setIsobusAddress(self, address):
+# 		response = ''
+# 		to_write = 'U1!{:d}{}'.format(address, EOL)
+# 		wrote = self.serial_port.write(to_write.encode('latin1'))
+# 		ch = ''
+# 		t = time.time()			# Don't try to read forever, if there's nothing
+# 		while ch != EOL and time.time() - t < 1:
+# 			ch = self.serial_port.read().decode('utf-8')
+# 			response += ch
+# 		self.serial_port.flush()
+# 
+# 		to_write = 'U0{}'.format(EOL)
+# 		wrote = self.serial_port.write(to_write.encode('latin1'))
+# 		ch = ''
+# 		t = time.time()			# Don't try to read forever, if there's nothing
+# 		while ch != EOL and time.time() - t < 1:
+# 			ch = self.serial_port.read().decode('utf-8')
+# 			response += ch
+# 		self.serial_port.flush()		
+# 		
+# 		self.machine_id = address
+# 		return response
 		
 	def runCommand(self, cmd):
 		response = ''
@@ -248,7 +244,6 @@ class IGH:
 	# For valves 'NV', "V6" and "V12A", value means percent open (0 <= value <= 100).
 	# For other valves, value 1 = on, 0 = off
 	def setValve(self, valve, value):
-		# print 'Value: ', value, "AND", '%03d' % int(value*10), "AND", "N"+'%03d' % int(value*10), "Decimal:", Decimal(value*10)
 		try:
 			self.setRemote()	
 			if valve=='V6':
