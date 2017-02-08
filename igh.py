@@ -192,7 +192,7 @@ class IGH:
 		self.NV = float(output[2:])/10
 		return self.NV
 	
-	def retG1(self):
+	def getG1(self):
 		output = self.runCommand('R14')
 		self.G1 = float(output[3:])/10
 		return self.G1
@@ -221,18 +221,6 @@ class IGH:
 		output = self.runCommand('R35')
 		self.MixChResistance = float(output[1:])*100
 		return self.MixChResistance
-	
-	# This will return the helium level if the current isobus machine_id corresponds to an ILM
-	def getHeliumLevel(self):
-		output = self.runCommand('R1')
-		self.HeliumLevel = float(output[3:])/10
-		return self.HeliumLevel
-
-	# This will return the nitrogen level if the current isobus machine_id corresponds to an ILM		
-	def getNitrogenLevel(self):
-		output = self.runCommand('R2')
-		self.NitrogenLevel = float(output[3:])/10
-		return self.NitrogenLevel
 	
 	def setRemote(self):
 		self.runCommand('C3')

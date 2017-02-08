@@ -28,6 +28,10 @@ def readEverything(ctrl):
 	ctrl.getMixChResistance() # not logging this?
 	return state
 
+def readILM(ctrl):
+	ctrl.getHeliumLevel()
+	ctrl.getNitrogenLevel()
+
 def log(igh_ctrl, ilm_ctrl):
 	response = qweb.getLoggableInfoForNow('igh')
 	sensors = str.split(response, '\n')
@@ -81,11 +85,6 @@ def log(igh_ctrl, ilm_ctrl):
 				qweb.makeLogEntry(loggable_name, val)
 
 
-def readILM(ctrl):
-	ctrl.getHeliumLevel()
-	ctrl.getNitrogenLevel()
-
-
 def executeCommands(ctrl):
 	response = qweb.getCommands(port_id, 'C')
 	cmdrows = str.split(response, '\n')
@@ -127,13 +126,13 @@ if __name__ == "__main__":
     t_readConfig = 0
     t_command = 0
 
-    igh_ctrl = igh.IGH(port_id, '/dev/ttyS6', 9600, 5, 'ighcontroller') 
-    ilm_ctrl = ilm.ILM(port_id, '/dev/ttyS6', 9600, 6, 'ighcontroller')
+    igh_ctrl = igh.IGH('/dev/ttyS6', 9600, 5) 
+    ilm_ctrl = ilm.ILM('/dev/ttyS6', 9600, 6)
 
     while True:
         try:
             if time.time() - t_all >=period_all:
-                state = readEverything(igh)
+                state = readEverything(igh_ctrl)
                 readILM(ilm_ctrl)
                 t_all = time.time()
                 qweb.setCurrentState(2, state)
