@@ -2,9 +2,7 @@ import serial
 from xbee import ZigBee
 import time
 import datetime
-import struct
 import qweb
-import binascii
 
 # There are 2 XBee emitters in the lab
 #     XBee (1) -- by the purifier. reads helium bottle pressure and oxygen level after purifier
@@ -13,7 +11,7 @@ import binascii
 # There is 1 XBee receiver in the lab.
 #     XBee (3) -- mounted on qdot-server 
 
-def readXBee(xb, loggable_name):
+def logXBeeVal(xb, loggable_name):
 
 	packet = None
 	
@@ -27,31 +25,35 @@ def readXBee(xb, loggable_name):
 	elif loggable_name=="liquefier_level":
 		XbeeId = b'\x00\x13\xa2\x00\x40\xbf\x8f\x59' # XBee 2
 		cmd = b'ReadLiq'
-# 	elif loggable_name=="purifier_nitrogen_level":
-# 		XbeeId = b'\x00\x13\xa2\x00\x40\xa0\x96\xb1'
-# 		cmd = b'ReadC'
 	else:
-		raise KeyError('Unknown loggable_name.'+loggable_name)
+		raise KeyError('Unknown loggable_name: '+loggable_name)
 	
 	# transmit request for data
 	xb.tx(frame=b'\x02', dest_addr=b'\xFF\xFE', dest_addr_long=XbeeId, data=cmd)
+	print('transmitted: {0}'.format(cmd))
 
-    # wait for response -- IS THIS THE PROBLEM?	
-    # this is really sloppy
-	packet = xb.wait_read_frame()
-	while not packet['id']=="rx":
+	# read response to request
+	timeout = 10.0 # timeout after 10s of waiting
+	timeout_start = time.time()
+	while time.time() - timeout_start < timeout:
 		packet = xb.wait_read_frame()
-	
+		print(packet)
+		if packet['id']=='rx':
+			break
+		time.sleep(0.1)					
+	else:
+		raise TimeoutError('Timeout while trying to read: {0}'.format(loggable_name))
+
 	d = packet['rf_data'].decode('utf-8')
-	if d.find("=") > -1:
+	if d.find("=") > -1: # if there is a value, log it
 		rf_loggable_name = d.split('=')[0]
 		rf_val = d.split('=')[1]
-		if not (rf_loggable_name=="purifier_nitrogen_level" and float(rf_val)<71000):
-			qweb.makeLogEntry(rf_loggable_name, rf_val)
-	else:
-		print(packet)
+		qweb.makeLogEntry(rf_loggable_name, rf_val)
+		print('{0} -- Logged: {1}'.format(datetime.datetime.now(), loggable_name)) 
+	else: # scrap it otherwise
+		raise KeyError('No data found in packet: {0}'.format(packet))
 
-def log(xb):
+def getAllAvailableXBeeVals(xb):
 	response = qweb.getLoggableInfoForNow('xbee')
 	sensors = str.split(response, "\n")
 	machine_type=""
@@ -66,7 +68,7 @@ def log(xb):
 					machine_type = keyvals[1]
 			if machine_type == "xbee": # what is the purpose of machine_type?
 				try:
-					readXBee(xb, loggable_name)
+					logXBeeVal(xb, loggable_name)
 				except Exception as e:
 					print(str(datetime.datetime.now()), ": ",e)
 
@@ -74,7 +76,7 @@ def log(xb):
 
 if __name__ == "__main__":
 
-    period_all = 15 #seconds
+    period_all = 5 #seconds
     t_all = 0
 
     ser=serial.Serial('/dev/ttyUSB0', 19200) # open serial port
@@ -83,7 +85,7 @@ if __name__ == "__main__":
     while True:
         try:
             if time.time() - t_all >= period_all:
-                log(xb)
+                getAllAvailableXBeeVals(xb)
                 t_all = time.time()
 
             time.sleep(2)
