@@ -24,14 +24,14 @@ if ( mkdir ${lockdir} ) 2> /dev/null; then
         trap 'rm -rf "$lockdir"; exit $?' INT TERM EXIT # use trap to ensure this always gets removed
 
 	# mount volume
-	mount -t cifs //qdot20.phas.ubc.ca/Local_Measurement_Data /mnt/qdot20 -o ro,credentials=/srv/machines/qdot20_credentials
-	mount -t cifs //qdot25.phas.ubc.ca/Local_Measurement_Data /mnt/qdot25 -o ro,credentials=/srv/machines/qdot25_credentials
-	mount -t cifs //qdot26.phas.ubc.ca/Local_Measurement_Data /mnt/qdot26 -o ro,credentials=/srv/machines/qdot26_credentials
+	mount -t cifs //qdot20.phas.ubc.ca/Local_Measurement_Data /mnt/qdot20 -o ro,credentials=/srv/ControlLoops/qdot20_credentials
+	mount -t cifs //qdot25.phas.ubc.ca/Local_Measurement_Data /mnt/qdot25 -o ro,credentials=/srv/ControlLoops/qdot25_credentials
+	mount -t cifs //qdot26.phas.ubc.ca/Local_Measurement_Data /mnt/qdot26 -o ro,credentials=/srv/ControlLoops/qdot26_credentials
 
 	# rsync 
-	rsync -avzp --include='*/' --include-from='/srv/machines/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot20/ /srv/measurement-data/qdot20/
-	rsync -avzp --include='*/' --include-from='/srv/machines/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot25/ /srv/measurement-data/qdot25/
-	rsync -avzp --include='*/' --include-from='/srv/machines/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot26/ /srv/measurement-data/qdot26/
+	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot20/ /srv/measurement-data/qdot20/
+	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot25/ /srv/measurement-data/qdot25/
+	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot26/ /srv/measurement-data/qdot26/
 
 	# unmount volume
 	umount /mnt/qdot20
