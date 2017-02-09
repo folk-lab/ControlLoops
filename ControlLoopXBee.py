@@ -30,29 +30,21 @@ def transmitRequest(xb, loggable_name):
 	
 	# transmit request for data
 	xb.tx(frame=b'\x02', dest_addr=b'\xFF\xFE', dest_addr_long=XbeeId, data=cmd)
-	print('Transmitted: {0}'.format(cmd.decode()))
+	# print('Transmitted: {0}'.format(cmd.decode()))
 
 def requestAllSensors(xb, delay = 1.0):
-	response = qweb.getLoggableInfoForNow('xbee')
-	sensors = str.split(response, "\n")
+    response = qweb.getLoggableInfoForNow('xbee')
+    sensors = str.split(response, "\n")
 
-	machine_type=""
-	for sensor in sensors:
-        print(sensor)
-		if sensor != "":
-			props = str.split(sensor, ";")
-			for prop in props:
-				keyvals = str.split(prop, "=")
-				if keyvals[0]=="loggable_name":
-					loggable_name = keyvals[1]
-				elif keyvals[0]=="machine_type":
-					machine_type = keyvals[1]
-			if machine_type == "xbee": # what is the purpose of machine_type?
-				try:
-					transmitRequest(xb, loggable_name)
-				except Exception as e:
-					print(str(datetime.datetime.now()), ": ",e)
-				time.sleep(delay)
+    for sensor_str in sensors:
+        if sensor_str !='':
+            sensor_dict = {s.split('=')[0]:s.split('=')[1] for s in sensor_str.split(';')}
+            if sensor_dict['machine_type']=='xbee':
+                try:
+                    transmitRequest(xb, sensor_dict['loggable_name'])
+                except Exception as e:
+                    print('{0} -- {1}'.format(datetime.datetime.now(),e))
+                time.sleep(delay)
 
 def log_incoming_data(packet):
     """ handle received data packets. log incoming values to server. """
