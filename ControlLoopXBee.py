@@ -11,7 +11,9 @@ import qweb
 # There is 1 XBee receiver in the lab.
 #     XBee (3) -- mounted on qdot-server 
 
-def logXBeeVal(xb, loggable_name):
+########## ASYNC TX/RX ###########
+
+def transmitRequest(xb, loggable_name):
 
 	packet = None
 	
@@ -30,32 +32,12 @@ def logXBeeVal(xb, loggable_name):
 	
 	# transmit request for data
 	xb.tx(frame=b'\x02', dest_addr=b'\xFF\xFE', dest_addr_long=XbeeId, data=cmd)
-	print('transmitted: {0}'.format(cmd))
+	print('Transmitted: {0}'.format(cmd))
 
-	# read response to request
-	timeout = 10.0 # timeout after 10s of waiting
-	timeout_start = time.time()
-	while time.time() - timeout_start < timeout:
-		packet = xb.wait_read_frame()
-		print(packet)
-		if packet['id']=='rx':
-			break
-		time.sleep(0.1)					
-	else:
-		raise TimeoutError('Timeout while trying to read: {0}'.format(loggable_name))
-
-	d = packet['rf_data'].decode('utf-8')
-	if d.find("=") > -1: # if there is a value, log it
-		rf_loggable_name = d.split('=')[0]
-		rf_val = d.split('=')[1]
-		qweb.makeLogEntry(rf_loggable_name, rf_val)
-		print('{0} -- Logged: {1}'.format(datetime.datetime.now(), loggable_name)) 
-	else: # scrap it otherwise
-		raise KeyError('No data found in packet: {0}'.format(packet))
-
-def getAllAvailableXBeeVals(xb):
+def requestAllSensors(xb, delay = 1.0):
 	response = qweb.getLoggableInfoForNow('xbee')
 	sensors = str.split(response, "\n")
+#	print(sensors)
 	machine_type=""
 	for sensor in sensors:
 		if sensor != "":
@@ -68,28 +50,37 @@ def getAllAvailableXBeeVals(xb):
 					machine_type = keyvals[1]
 			if machine_type == "xbee": # what is the purpose of machine_type?
 				try:
-					logXBeeVal(xb, loggable_name)
+					transmitRequest(xb, loggable_name)
+					time.sleep(delay)
 				except Exception as e:
 					print(str(datetime.datetime.now()), ": ",e)
 
+def log_incoming_data(packet):
+	""" handle received data packets. log incoming values to server. """
+	print(packet)
+	if packet['id'] == 'rx': # some data was received
+		print('rx received: {0}'.format(packet))
+		data = packet['rf_data'].decode('utf-8').split('=')
+		print(type(data[1]))
+		if data[1]!='':
+			print('{0} -- Logged: {1}'.format(datetime.datetime.now(), loggable_name)) 	
+			qweb.makeLogEntry(data[0], data[1])
+		else:
+			print('Empty packet: {0}'.format(packet))	
+				
 #### Main Control Loop ####
 
 if __name__ == "__main__":
+	
+	ser=serial.Serial('/dev/ttyUSB0', 19200) # open serial port
+	xb = ZigBee(ser, escaped = True, callback=log_incoming_data) # create zigbee object
 
-    period_all = 5 #seconds
-    t_all = 0
-
-    ser=serial.Serial('/dev/ttyUSB0', 19200) # open serial port
-    xb = ZigBee(ser, escaped = True) # create zigbee object
-
-    while True:
+	while True:
         try:
-            if time.time() - t_all >= period_all:
-                getAllAvailableXBeeVals(xb)
-                t_all = time.time()
+            requestAllSensors(xb, delay = 5.0)
+        except KeyboardInterrupt:
+            # print(str(datetime.datetime.now()), ": ", e)
+            break
 
-            time.sleep(2)
-        except Exception as e:
-            print(str(datetime.datetime.now()), ": ", e)
-
-
+	xb.halt()
+    serial_port.close()
