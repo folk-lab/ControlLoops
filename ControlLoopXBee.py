@@ -43,7 +43,8 @@ def requestAllSensors(xb, delay = 1.0):
                 try:
                     transmitRequest(xb, sensor_dict['loggable_name'])
                 except Exception as e:
-                    print('{0} -- {1}'.format(datetime.datetime.now(),e))
+                    # print('{0} -- {1}'.format(datetime.datetime.now(),e))
+                    pass
                 time.sleep(delay)
 
 def log_incoming_data(packet):
@@ -52,11 +53,12 @@ def log_incoming_data(packet):
     if packet['id'] == 'rx': # some data was received
         data = packet['rf_data'].decode('utf-8').split('=')
         if data[1]!='':
-            print('{0} -- Logged: {1}'.format(datetime.datetime.now(), data))
+            # print('{0} -- Logged: {1}'.format(datetime.datetime.now(), data))
             qweb.makeLogEntry(*data)
         else:
-            print('No data in packet: {0}'.format(packet))	
-				
+            # print('No data in packet: {0}'.format(packet))	
+            pass
+	
 #### Main Control Loop ####
 
 if __name__ == "__main__":
