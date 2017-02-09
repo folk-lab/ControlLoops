@@ -51,9 +51,9 @@ def requestAllSensors(xb, delay = 1.0):
 			if machine_type == "xbee": # what is the purpose of machine_type?
 				try:
 					transmitRequest(xb, loggable_name)
-					time.sleep(delay)
 				except Exception as e:
 					print(str(datetime.datetime.now()), ": ",e)
+				time.sleep(delay)
 
 def log_incoming_data(packet):
 	""" handle received data packets. log incoming values to server. """
@@ -72,14 +72,13 @@ def log_incoming_data(packet):
 
 if __name__ == "__main__":
 	
-	ser=serial.Serial('/dev/ttyUSB0', 19200) # open serial port
-	xb = ZigBee(ser, escaped = True, callback=log_incoming_data) # create zigbee object
-
-	while True:
+    ser=serial.Serial('/dev/ttyUSB0', 19200) # open serial port
+    xb = ZigBee(ser, escaped = True, callback=log_incoming_data) # create zigbee object
+            
+    while True:
         try:
             requestAllSensors(xb, delay = 5.0)
         except KeyboardInterrupt:
-            # print(str(datetime.datetime.now()), ": ", e)
             break
 
 	xb.halt()
