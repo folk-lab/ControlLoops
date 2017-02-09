@@ -14,8 +14,6 @@ import qweb
 ########## ASYNC TX/RX ###########
 
 def transmitRequest(xb, loggable_name):
-
-	packet = None
 	
 	# figure out what we are going to read
 	if loggable_name=="oxygen_after_purifier":
@@ -32,14 +30,15 @@ def transmitRequest(xb, loggable_name):
 	
 	# transmit request for data
 	xb.tx(frame=b'\x02', dest_addr=b'\xFF\xFE', dest_addr_long=XbeeId, data=cmd)
-	print('Transmitted: {0}'.format(cmd))
+	print('Transmitted: {0}'.format(cmd.decode()))
 
 def requestAllSensors(xb, delay = 1.0):
 	response = qweb.getLoggableInfoForNow('xbee')
 	sensors = str.split(response, "\n")
-#	print(sensors)
+
 	machine_type=""
 	for sensor in sensors:
+        print(sensor)
 		if sensor != "":
 			props = str.split(sensor, ";")
 			for prop in props:
@@ -56,17 +55,15 @@ def requestAllSensors(xb, delay = 1.0):
 				time.sleep(delay)
 
 def log_incoming_data(packet):
-	""" handle received data packets. log incoming values to server. """
-	print(packet)
-	if packet['id'] == 'rx': # some data was received
-		print('rx received: {0}'.format(packet))
-		data = packet['rf_data'].decode('utf-8').split('=')
-		print(type(data[1]))
-		if data[1]!='':
-			print('{0} -- Logged: {1}'.format(datetime.datetime.now(), loggable_name)) 	
-			qweb.makeLogEntry(data[0], data[1])
-		else:
-			print('Empty packet: {0}'.format(packet))	
+    """ handle received data packets. log incoming values to server. """
+    
+    if packet['id'] == 'rx': # some data was received
+        data = packet['rf_data'].decode('utf-8').split('=')
+        if data[1]!='':
+            print('{0} -- Logged: {1}'.format(datetime.datetime.now(), data))
+            qweb.makeLogEntry(*data)
+        else:
+            print('No data in packet: {0}'.format(packet))	
 				
 #### Main Control Loop ####
 
@@ -81,5 +78,5 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             break
 
-	xb.halt()
-    serial_port.close()
+    xb.halt()
+    ser.close()
