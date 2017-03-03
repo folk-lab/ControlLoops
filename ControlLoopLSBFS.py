@@ -132,10 +132,13 @@ def execute_commands(port_id, ctrl, ctrl_heat):
                                 elif cmd.startswith('SCANNER'):
                                     update_scanner_cycle(cmd)
                                 elif cmd.startswith('MAGHEATER'):
-                                    if "on" in cmd.lower():
-                                        ctrl_heat.relay_on()
+                                    if ctrl_heat:
+                                        if "on" in cmd.lower():
+                                            ctrl_heat.relay_on()
+                                        else:
+                                            ctrl_heat.relay_off()
                                     else:
-                                        ctrl_heat.relay_off()
+                                        print('HEATER OPERATION IGNORED: device not connected.')
                                 else:
                                     ctrl.write(cmd)
                                 qweb.setCommandStatus(command_id, 'P')
@@ -220,13 +223,20 @@ if __name__ == "__main__":
     config_file = r'C:\Users\LabUser\Documents\GitHub\ControlLoops\ls_config_bfs\global.config'
     config_time = os.path.getmtime(config_file)
     with open(config_file, 'r') as f: # fix config file paths
-                config = json.load(f)
+        config = json.load(f)
                 
     channels = config['connected channels'] 
     channel_cycle = config['scanner sequence'] # list of read times in seconds
 
-    ls = lakeshore.LS370(20, interface='Serial')
-    heat = magheater.Heater("COM5")
+    ls_port = config['ls_port']
+    heater_port = config['heater_port']
+    ls = lakeshore.LS370(ls_port, interface='Serial')
+    if heater_port < 0:
+        heat = None
+        print('Magnet Heater not connected')
+    else:
+        heat = magheater.Heater(hetaer_port)
+        
     response = ls.query('*IDN?')
     if response.split(',')[1]!='MODEL370':
         raise IOError('Not reading the correct instrument?')
@@ -261,7 +271,7 @@ if __name__ == "__main__":
                     print('scanner sequence updated to: {0}'.format(','.join([str(c) for c in channel_cycle])))
                 config_time = os.path.getmtime(config_file)
                 
-        # trigger channel reading
+        ### trigger channel reading ###
         idx, read_channel = pick_channel(channels, channel_cycle, datetime.now())
         # print('reading channel: {0}'.format(read_channel))
         
