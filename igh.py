@@ -133,7 +133,7 @@ class IGH:
 		# TODO Set other variables that can be extracted from the 'X' string.
 		# See page 28 of IGH Kelvinox Electronics 
 			
-		return output
+		return output.strip()
 
 	# This will return the Sorb Temperature if the current isobus machine_id corresponds to an IGH
 	def getSorbTemp(self):
