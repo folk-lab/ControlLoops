@@ -92,7 +92,7 @@ class IGH:
 		return response
 
 	def getStatus(self):
-		output = self.runCommand('X')
+		output = self.runCommand('X').strip()
 		X = int(output[1:2])
 		A = int(output[3:4])
 		C = int(output[5:6])
@@ -133,7 +133,7 @@ class IGH:
 		# TODO Set other variables that can be extracted from the 'X' string.
 		# See page 28 of IGH Kelvinox Electronics 
 			
-		return output.strip()
+		return output
 
 	# This will return the Sorb Temperature if the current isobus machine_id corresponds to an IGH
 	def getSorbTemp(self):

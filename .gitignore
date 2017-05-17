@@ -12,3 +12,4 @@ __pycache__/
 
 ._*.config
 *.log
+*_credentials
