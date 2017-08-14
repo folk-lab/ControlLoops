@@ -13,26 +13,26 @@ import os
 # pairs are (local_name: loggable_name)
 name_reference = {'CH1 P': None,
                   'CH1 R': None,
-                  'CH1 T': 'bfs_50K_temp',
+                  'CH1 T': 'bfb_50K_temp',
                   'CH2 P': None,
                   'CH2 R': None,
-                  'CH2 T': 'bfs_4K_temp',
-                  'CH4 P': None,
-                  'CH4 R': None,
-                  'CH4 T': 'bfs_magnet_temp',
+                  'CH2 T': 'bfb_4K_temp',
+                  'CH3 P': None,
+                  'CH3 R': None,
+                  'CH3 T': 'bfb_magnet_temp',
                   'CH5 P': None,
                   'CH5 R': None,
-                  'CH5 T': 'bfs_still_temp',
+                  'CH5 T': 'bfb_still_temp',
                   'CH6 P': None,
-                  'CH6 R': 'bfs_mc_r',
-                  'CH6 T': 'bfs_mc_temp',
+                  'CH6 R': 'bfb_mc_r',
+                  'CH6 T': 'bfb_mc_temp',
                   'a1_u': None,
                   'a1_r_lead': None,
                   'a1_r_htr': None,
-                  'a2_u': 'bfs_still_heater',
+                  'a2_u': 'bfb_still_heater',
                   'a2_r_lead': None,
                   'a2_r_htr': None,
-                  'htr': 'bfs_mc_heater',
+                  'htr': 'bfb_mc_heater',
                   'htr_range':  None}
                   
 # pairs are (loggable_name: local_name)
@@ -103,7 +103,7 @@ def update_scanner_cycle(cmd):
     new_sequence = [float(t) for t in cmd[7:].strip().split(',')]
     
     # load existing config and rewrite scanner sequence
-    global_config = r'C:\Users\LabUser\Documents\GitHub\ControlLoops\ls_config_bfs\global.config'
+    global_config = r'C:\Users\folklab\Documents\GitHub\ControlLoops\ls_config_bfb\global.config'
     with open(global_config, 'r') as f:
             config = json.load(f)
     config['scanner sequence'] = new_sequence
@@ -170,10 +170,9 @@ def find_loggable_data(data):
     global inv_name_reference
     
     # string describing what needs to be updated
-    loggable_str = qweb.getLoggableInfoForNow('bfs')
+    loggable_str = qweb.getLoggableInfoForNow('bfb')
     # list of loggable_names to be updated 
     loggable_list = re.findall(r'loggable_name=(\w+);',loggable_str)
-    
     loggable_data = []
     if loggable_list:
         # get list of bluefors names from loggable_list using dictionary
@@ -220,7 +219,7 @@ if __name__ == "__main__":
     sensors = sorted(sensors, key=lambda x: (x[2], x[-1])) # use this to find index
     sensor_data = [[datetime.now(), s, 0.0] for s in sensors] # use this to store data
     
-    config_file = r'C:\Users\LabUser\Documents\GitHub\ControlLoops\ls_config_bfs\global.config'
+    config_file = r'C:\Users\folklab101\Documents\GitHub\ControlLoops\ls_config_bfb\global.config'
     config_time = os.path.getmtime(config_file)
     with open(config_file, 'r') as f: # fix config file paths
         config = json.load(f)
@@ -230,7 +229,7 @@ if __name__ == "__main__":
 
     ls_port = config['ls_port']
     heater_port = config['heater_port']
-    ls = lakeshore.LS370(ls_port, interface='Serial')
+    ls = lakeshore.LS372(ls_port, interface='Serial')
     if heater_port < 0:
         heat = None
         print('Magnet Heater not connected')
@@ -238,14 +237,13 @@ if __name__ == "__main__":
         heat = magheater.Heater(hetaer_port)
         
     response = ls.query('*IDN?')
-    if response.split(',')[1]!='MODEL370':
+    if response.split(',')[1]!='MODEL372':
         raise IOError('Not reading the correct instrument?')
     else:
         print(response)
     settling_times = ls.configure_global(config_file)
     channel_cycle = check_dts(settling_times, channel_cycle)
-    print(settling_times)
-    print(channel_cycle)
+    print('Settling Times: ', settling_times)
     time.sleep(0.2)
     
     # fill out initial data for sensors
@@ -254,8 +252,8 @@ if __name__ == "__main__":
         update_single_sensor(ls, ch, junk_data)
     
     # information for database
-    port_id = 3
-    loggable_category_id = 4
+    port_id = 4
+    loggable_category_id = 5
 
     while True:
         strt = time.time()
