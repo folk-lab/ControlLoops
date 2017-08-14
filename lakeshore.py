@@ -261,9 +261,8 @@ class LS372():
         time.sleep(0.1)
 
         # setup display        
-        self.ctrl.write('DISPLOC {0:d}, {1:d}, {2:d}, {3:d}'.format(
-                        config['display location'], config['channel number'], 
-                        units.index(config['units'])+1, config['resolution']))
+        self.ctrl.write('DISPFLD  {0:d}, {1:d}, {2:d}'.format(
+                        config['display location'], config['channel number'], units.index(config['units'])+1))
         time.sleep(0.1)
         
         if config['excitation mode']=='Voltage':
@@ -275,9 +274,9 @@ class LS372():
         rrange = ((resistances - config['range']) > 0).argmax()+1
         
         # setup excitation and reading ranges
-        self.ctrl.write('RDGRNG {0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:d}'.format(
+        self.ctrl.write('INTYPE {0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:d}, {6:d}'.format(
                         config['channel number'], mode.index(config['excitation mode']), 
-                        excite, rrange, config['autorange'], config['cs off']))
+                        excite, config['autorange'], rrange, config['cs off'], units.index(config['units'])+1))
         time.sleep(0.1)
         
         # setup filter
@@ -299,11 +298,11 @@ class LS372():
         
         with open(global_config, 'r') as f:
             config = json.load(f)
-            
+             
         freq = np.abs(frequencies - config['frequency']).argmin()+1
         
         # display
-        self.ctrl.write('DISPLAY {0:d}'.format(len(config['connected channels'])))
+        self.ctrl.write('DISPLAY 2, {0:d}, 1'.format(len(config['connected channels'])))
         time.sleep(0.1)
         
         # frequency
