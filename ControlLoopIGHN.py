@@ -147,3 +147,4 @@ if __name__ == "__main__":
                         
         except Exception as e:
             print(datetime.datetime.now(), ': ',e)
+        time.sleep(0.1)

@@ -30,12 +30,12 @@ def transmitRequest(xb, loggable_name):
 	
 	# transmit request for data
 	xb.tx(frame=b'\x02', dest_addr=b'\xFF\xFE', dest_addr_long=XbeeId, data=cmd)
-	# print('Transmitted: {0}'.format(cmd.decode()))
+	print('Transmitted: {0}'.format(cmd.decode()))
 
 def requestAllSensors(xb, delay = 1.0):
     response = qweb.getLoggableInfoForNow('xbee')
     sensors = str.split(response, "\n")
-
+    # print('server wants: ', sensors)
     for sensor_str in sensors:
         if sensor_str !='':
             sensor_dict = {s.split('=')[0]:s.split('=')[1] for s in sensor_str.split(';')}
@@ -43,20 +43,19 @@ def requestAllSensors(xb, delay = 1.0):
                 try:
                     transmitRequest(xb, sensor_dict['loggable_name'])
                 except Exception as e:
-                    # print('{0} -- {1}'.format(datetime.datetime.now(),e))
+                    print('{0} -- {1}'.format(datetime.datetime.now(),e))
                     pass
                 time.sleep(delay)
 
 def log_incoming_data(packet):
     """ handle received data packets. log incoming values to server. """
-    
     if packet['id'] == 'rx': # some data was received
         data = packet['rf_data'].decode('utf-8').split('=')
         if data[1]!='':
-            # print('{0} -- Logged: {1}'.format(datetime.datetime.now(), data))
+            print('{0} -- Logged: {1}'.format(datetime.datetime.now(), data))
             qweb.makeLogEntry(*data)
         else:
-            # print('No data in packet: {0}'.format(packet))	
+            print('No data in packet: {0}'.format(packet))	
             pass
 	
 #### Main Control Loop ####
