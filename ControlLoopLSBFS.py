@@ -282,9 +282,15 @@ if __name__ == "__main__":
             read_time= time.time()
        
         ### do other stuff while waiting for reading to settle ###
-        
-        execute_commands(port_id, ls, heat) # execute any commands
-        data = read_all_values(ls) # grab most recent sensor data
+        try:
+            execute_commands(port_id, ls, heat) # execute any commands
+        except Exception as e:
+            print('ERROR: {0} at {1}'.format(e, str(datetime.now())))
+            
+        try:
+            data = read_all_values(ls) # grab most recent sensor data
+        except Exception as e:
+            print('ERROR: {0} at {1}'.format(e, str(datetime.now())))
         
         # log values to server
         strt = time.time()
@@ -293,13 +299,16 @@ if __name__ == "__main__":
         qweb.setCurrentState(loggable_category_id, state)
         new_data = find_loggable_data(ldata)
         if new_data:
-            log_new_data(new_data)
-            print('new data logged! {0}'.format(str(datetime.now())))
-        
+            try:
+                log_new_data(new_data)
+                print('new data logged! {0}'.format(str(datetime.now())))
+            except Exception as e:
+                print('ERROR: {0} at {1}'.format(e, str(datetime.now())))
         ### go back and get the new sensor reading ###
         
         while(time.time()<read_time): 
             # wait here for the reading to settle
+			time.sleep(0.1)
             pass
         data = update_single_sensor(ls, read_channel, data)
         # print('Logged: {0:d} values, Loop time: {1:.3f}s'.format(len(new_data), time.time()-strt))
