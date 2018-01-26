@@ -5,9 +5,9 @@ from datetime import datetime, date, timedelta
 
 class ValveControlFromFile():
 	""" log data from bluefors log files into Mohammed's database """
-	def __init__(self):
+	def __init__(self, log_dir):
 
-		self.vc_log_dir = 'D:\Logging\ValveControl'
+		self.vc_log_dir = log_dir
 		
 	def _update_dates(self):
 		""" update date and directory names"""
@@ -43,7 +43,7 @@ class ValveControlFromFile():
 				else: 
 					days += 1
 		log_time, log_list = self._get_latest_log(log_file) # get most recent reading and time
-		return [[log_time, log_list[i+1], float(log_list[i+2])] for i in range(0, len(log_list)-1, 2)]
+		return [[log_time, log_list[i+1].strip(), float(log_list[i+2])] for i in range(0, len(log_list)-1, 2)]
 	
 	def get_flowmeter_logs(self):
 		""" get values from flowmeter logs """
@@ -55,13 +55,13 @@ class ValveControlFromFile():
 		""" get pressure values from maxigauge log file """
 		log_file = os.path.join(self.vc_today_dir, 'maxigauge {0}.log'.format(self.datestr)) # get log file name
 		log_time, log_list = self._get_latest_log(log_file) # get most recent reading and time
-		return [[log_time, log_list[i+1], float(log_list[i+3])] for i in range(0, len(log_list)-1, 6)]
+		return [[log_time, log_list[i+1].strip(), float(log_list[i+3])] for i in range(0, len(log_list)-1, 6)]
 		
 	def get_valvecontrol_status_logs(self):
 		""" get values from valvecontrol status log file """
 		log_file = os.path.join(self.vc_today_dir, 'Status_{0}.log'.format(self.datestr)) # get log file name
 		log_time, log_list = self._get_latest_log(log_file) # get most recent reading and time
-		return [[log_time, log_list[i], float(log_list[i+1])] for i in range(0, len(log_list), 2)]
+		return [[log_time, log_list[i].strip(), float(log_list[i+1])] for i in range(0, len(log_list), 2)]
 		
 	def read_all(self):
 		self._update_dates() # has to come before any mention of the logs functions
