@@ -31,7 +31,8 @@ if ( mkdir ${lockdir} ) 2> /dev/null; then
 	# rsync 
 	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot20/ /srv/measurement-data/qdot20/
 	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot25/ /srv/measurement-data/qdot25/
-	# rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot26/ /srv/measurement-data/qdot26/
+#	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot26/ /srv/measurement-data/qdot26/
+	rsync -avzp --include='*/' --include-from='/srv/ControlLoops/rsync_include' --exclude='*' --log-file='/srv/measurement-data/data_rsync.log' --prune-empty-dirs /mnt/qdot29/ /srv/measurement-data/qdot29/
 
 	# unmount volume
 #	umount /mnt/qdot20
